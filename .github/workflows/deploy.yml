@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout code
+      # 1️⃣ Checkout
       - name: Checkout Code
         uses: actions/checkout@v3
 
@@ -24,7 +24,7 @@ jobs:
         with:
           python-version: '3.9'
 
-      # 3️⃣ Configure AWS Credentials
+      # 3️⃣ Configure AWS
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -33,7 +33,28 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       # -------------------------------
-      # 🌍 Terraform Setup & Deploy
+      # 📦 Lambda Packaging (FIXED)
+      # -------------------------------
+      - name: Package Lambda
+        run: |
+          cd lambda
+          mkdir -p package
+
+          pip install -r requirements.txt -t package/
+
+          cp auto_stop.py package/
+
+          cd package
+          zip -r ../../lambda/auto_stop.zip .
+
+      # ✅ Debug (VERY IMPORTANT)
+      - name: Verify ZIP exists
+        run: |
+          echo "Lambda folder contents:"
+          ls lambda
+
+      # -------------------------------
+      # 🌍 Terraform
       # -------------------------------
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -57,39 +78,3 @@ jobs:
         run: |
           cd terraform
           terraform apply -auto-approve
-
-      # -------------------------------
-      # 📦 Lambda Packaging
-      # -------------------------------
-      - name: Package Lambda
-        run: |
-          cd lambda
-          mkdir -p package
-
-          pip install -r requirements.txt -t package/
-
-          cp auto_stop.py package/
-
-          cd package
-          zip -r ../function.zip .
-
-      # -------------------------------
-      # 🚀 Deploy Lambda
-      # -------------------------------
-      - name: Deploy Lambda
-        run: |
-          aws lambda update-function-code \
-            --function-name $LAMBDA_FUNCTION_NAME \
-            --zip-file fileb://lambda/function.zip
-
-      # -------------------------------
-      # 🔍 Debug (Optional - remove later)
-      # -------------------------------
-      - name: Debug Files (optional)
-        run: |
-          echo "Root:"
-          ls
-          echo "Terraform folder:"
-          ls terraform
-          echo "Lambda folder:"
-          ls lambda
