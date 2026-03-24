@@ -35,24 +35,25 @@ jobs:
       # -------------------------------
       # 🌍 Terraform
       # -------------------------------
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-
       - name: Terraform Init
-        working-directory: ./terraform
-        run: terraform init
+        run: |
+          cd terraform
+          terraform init
 
       - name: Terraform Validate
-        working-directory: ./terraform
-        run: terraform validate
+        run: |
+          cd terraform
+          terraform validate
 
       - name: Terraform Plan
-        working-directory: ./terraform
-        run: terraform plan
+        run: |
+          cd terraform
+          terraform plan
 
       - name: Terraform Apply
-        working-directory: ./terraform
-        run: terraform apply -auto-approve
+        run: |
+          cd terraform
+          terraform apply -auto-approve
 
       # -------------------------------
       # 📦 Lambda Packaging
@@ -60,7 +61,7 @@ jobs:
       - name: Package Lambda
         run: |
           cd lambda
-          mkdir package
+          mkdir -p package
 
           pip install -r requirements.txt -t package/
 
