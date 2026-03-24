@@ -24,7 +24,7 @@ jobs:
         with:
           python-version: '3.9'
 
-      # 3️⃣ Configure AWS
+      # 3️⃣ Configure AWS Credentials
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -33,8 +33,11 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       # -------------------------------
-      # 🌍 Terraform
+      # 🌍 Terraform Setup & Deploy
       # -------------------------------
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
       - name: Terraform Init
         run: |
           cd terraform
@@ -78,3 +81,15 @@ jobs:
           aws lambda update-function-code \
             --function-name $LAMBDA_FUNCTION_NAME \
             --zip-file fileb://lambda/function.zip
+
+      # -------------------------------
+      # 🔍 Debug (Optional - remove later)
+      # -------------------------------
+      - name: Debug Files (optional)
+        run: |
+          echo "Root:"
+          ls
+          echo "Terraform folder:"
+          ls terraform
+          echo "Lambda folder:"
+          ls lambda
