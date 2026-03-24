@@ -1,12 +1,30 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+    }
+    random = {
+      source  = "hashicorp/random"
+    }
+  }
+}
+
 provider "aws" {
   region = "ap-south-1"
+}
+
+# -------------------------------
+# RANDOM SUFFIX (for unique names)
+# -------------------------------
+resource "random_id" "suffix" {
+  byte_length = 4
 }
 
 # -------------------------------
 # IAM ROLE FOR LAMBDA
 # -------------------------------
 resource "aws_iam_role" "lambda_role" {
-  name = "lambda-ec2-stop-role"
+  name = "lambda-ec2-stop-role-${random_id.suffix.hex}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -26,7 +44,7 @@ resource "aws_iam_role" "lambda_role" {
 # IAM POLICY
 # -------------------------------
 resource "aws_iam_policy" "ec2_policy" {
-  name = "ec2-stop-policy"
+  name = "ec2-stop-policy-${random_id.suffix.hex}"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -42,9 +60,7 @@ resource "aws_iam_policy" "ec2_policy" {
       {
         Effect = "Allow"
         Action = [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents",
+          "logs:*",
           "cloudwatch:PutMetricData"
         ]
         Resource = "*"
@@ -76,7 +92,7 @@ resource "aws_lambda_function" "auto_stop" {
 # EVENTBRIDGE SCHEDULE
 # -------------------------------
 resource "aws_cloudwatch_event_rule" "schedule" {
-  name                = "ec2-stop-schedule"
+  name                = "ec2-stop-schedule-${random_id.suffix.hex}"
   schedule_expression = "rate(1 hour)"
 }
 
@@ -86,7 +102,7 @@ resource "aws_cloudwatch_event_target" "lambda_target" {
   arn       = aws_lambda_function.auto_stop.arn
 }
 
-# अनुमति EventBridge को Lambda invoke करने की
+# अनुमति for EventBridge to invoke Lambda
 resource "aws_lambda_permission" "allow_eventbridge" {
   statement_id  = "AllowExecutionFromEventBridge"
   action        = "lambda:InvokeFunction"
