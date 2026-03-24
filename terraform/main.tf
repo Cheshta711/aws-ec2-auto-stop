@@ -79,7 +79,7 @@ resource "aws_iam_role_policy_attachment" "attach_policy" {
 # LAMBDA FUNCTION
 # -------------------------------
 resource "aws_lambda_function" "auto_stop" {
-  function_name = "ec2-auto-stop"
+  function_name = "ec2-auto-stop-${random_id.suffix.hex}"
   role          = aws_iam_role.lambda_role.arn
   handler       = "auto_stop.lambda_handler"
   runtime       = "python3.9"
