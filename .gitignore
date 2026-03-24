@@ -1,0 +1,11 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+
+# Lambda zip
+*.zip
+
+# OS files
+.DS_Store
+Thumbs.db
